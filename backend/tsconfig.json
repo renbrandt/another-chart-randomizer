@@ -13,7 +13,6 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "isolatedModules": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "dist"
