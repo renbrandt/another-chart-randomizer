@@ -1,11 +1,24 @@
-import * as React from 'react';
+import * as React from "react";
+import { getMatches } from "./service/padmiss";
+import { ReturnPromiseType } from "./utils/types";
 
-class App extends React.Component {
-  public render() {
-    return (
-      <div className="App">HAHA LOL</div>
-    );
-  }
-}
+const loadMatchesOnMount = () => {
+  const [matches, setMatches] = React.useState<null | ReturnPromiseType<
+    typeof getMatches
+  >>(null);
+
+  React.useEffect(() => {
+    getMatches().then(result => {
+      setMatches(result);
+    });
+  }, []);
+
+  return matches;
+};
+
+const App = () => {
+  const matches = loadMatchesOnMount();
+  return <pre>{JSON.stringify(matches)}</pre>;
+};
 
 export default App;
