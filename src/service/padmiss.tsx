@@ -1,4 +1,5 @@
 import ApolloClient, { gql } from "apollo-boost";
+import { ReturnPromiseType } from "../utils/types";
 import {
   GetMatches,
   GetMatches_Matches_docs
@@ -37,14 +38,15 @@ export const GET_MATCHES = gql`
   }
 `;
 
+export type Match = GetMatches_Matches_docs;
+
 export const getMatches = async () => {
   const result = await client.query<GetMatches>({
     query: GET_MATCHES
   });
 
   // schema is still lacking a bit
-  return (result.data.Matches &&
-    result.data.Matches.docs) as GetMatches_Matches_docs[];
+  return (result.data.Matches && result.data.Matches.docs) as Match[];
 };
 
 export default client;

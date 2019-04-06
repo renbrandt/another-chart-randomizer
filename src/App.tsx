@@ -1,24 +1,26 @@
 import * as React from "react";
-import { getMatches } from "./service/padmiss";
-import { ReturnPromiseType } from "./utils/types";
+import { connect } from "react-redux";
+import { Dispatch, RootState } from "./store";
 
-const loadMatchesOnMount = () => {
-  const [matches, setMatches] = React.useState<null | ReturnPromiseType<
-    typeof getMatches
-  >>(null);
+type Props = ReturnType<typeof mapState> & ReturnType<typeof mapDispatch>;
 
+const App = React.memo<Props>(({ loadMatches, matches }) => {
   React.useEffect(() => {
-    getMatches().then(result => {
-      setMatches(result);
-    });
+    loadMatches();
   }, []);
 
-  return matches;
-};
+  return <pre>{JSON.stringify(matches, null, 2)}</pre>;
+});
 
-const App = () => {
-  const matches = loadMatchesOnMount();
-  return <pre>{JSON.stringify(matches)}</pre>;
-};
+const mapState = (state: RootState) => ({
+  matches: state.matches.data
+});
 
-export default App;
+const mapDispatch = (dispatch: Dispatch) => ({
+  loadMatches: dispatch.matches.loadMatches
+});
+
+export default connect(
+  mapState,
+  mapDispatch
+)(App) as React.ComponentType<any>;
