@@ -23,4 +23,4 @@ const mapDispatch = (dispatch: Dispatch) => ({
 export default connect(
   mapState,
   mapDispatch
-)(App) as React.ComponentType<any>;
+)(App);
