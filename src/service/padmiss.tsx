@@ -23,26 +23,36 @@ export const GET_MATCHES = gql`
   query GetMatches {
     Matches {
       docs {
-        tournamentId {
-          description
-          status
-          startDate
-          endDate
-          created
-        }
-
-        games {
-          stepChart {
-            stepArtist
-            bannerUrl
-            difficultyLevel
-            durationSeconds
-            created
-          }
-        }
-
+        _id
         status
         playedAt
+
+        tournamentId {
+          name
+        }
+
+        players {
+          _id
+          nickname
+        }
+
+        roundId {
+          name
+          _id
+
+          tournamentEventPartId {
+            name
+          }
+
+          stepCharts {
+            _id
+            difficultyLevel
+            song {
+              title
+              subTitle
+            }
+          }
+        }
       }
     }
   }
@@ -56,7 +66,8 @@ export const getMatches = async () => {
   });
 
   // schema is still lacking a bit
-  return (result.data.Matches && result.data.Matches.docs) as Match[];
+  return (result.data.Matches &&
+    result.data.Matches.docs) as GetMatches_Matches_docs[];
 };
 
 export default client;

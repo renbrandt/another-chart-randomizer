@@ -10,33 +10,49 @@ import { Status } from "./../../../__generated__/globalTypes";
 
 export interface GetMatches_Matches_docs_tournamentId {
   __typename: "TournamentResponse";
-  description: string | null;
-  status: Status | null;
-  startDate: string | null;
-  endDate: string | null;
-  created: string | null;
+  name: string;
 }
 
-export interface GetMatches_Matches_docs_games_stepChart {
+export interface GetMatches_Matches_docs_players {
+  __typename: "PlayerResponse";
+  _id: string;
+  nickname: string;
+}
+
+export interface GetMatches_Matches_docs_roundId_tournamentEventPartId {
+  __typename: "TournamentEventPartResponse";
+  name: string;
+}
+
+export interface GetMatches_Matches_docs_roundId_stepCharts_song {
+  __typename: "Song";
+  title: string;
+  subTitle: string | null;
+}
+
+export interface GetMatches_Matches_docs_roundId_stepCharts {
   __typename: "Stepchart";
-  stepArtist: string | null;
-  bannerUrl: string | null;
+  _id: string;
   difficultyLevel: number | null;
-  durationSeconds: number | null;
-  created: string | null;
+  song: GetMatches_Matches_docs_roundId_stepCharts_song | null;
 }
 
-export interface GetMatches_Matches_docs_games {
-  __typename: "GameResponse";
-  stepChart: GetMatches_Matches_docs_games_stepChart;
+export interface GetMatches_Matches_docs_roundId {
+  __typename: "RoundResponse";
+  name: string;
+  _id: string;
+  tournamentEventPartId: GetMatches_Matches_docs_roundId_tournamentEventPartId;
+  stepCharts: (GetMatches_Matches_docs_roundId_stepCharts | null)[] | null;
 }
 
 export interface GetMatches_Matches_docs {
   __typename: "MatchResponse";
-  tournamentId: GetMatches_Matches_docs_tournamentId;
-  games: (GetMatches_Matches_docs_games | null)[] | null;
+  _id: string;
   status: Status | null;
   playedAt: string | null;
+  tournamentId: GetMatches_Matches_docs_tournamentId;
+  players: (GetMatches_Matches_docs_players | null)[];
+  roundId: GetMatches_Matches_docs_roundId;
 }
 
 export interface GetMatches_Matches {
