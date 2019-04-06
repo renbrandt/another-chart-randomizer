@@ -1,12 +1,22 @@
-import ApolloClient, { gql } from "apollo-boost";
-import { ReturnPromiseType } from "../utils/types";
+import { InMemoryCache } from "apollo-cache-inmemory";
+import { ApolloClient } from "apollo-client";
+import { HttpLink } from "apollo-link-http";
+import gql from "graphql-tag";
+
 import {
   GetMatches,
   GetMatches_Matches_docs
 } from "./__generated__/GetMatches";
 
-const client = new ApolloClient({
+const httpLink = new HttpLink({
   uri: process.env.REACT_APP_PADMISS_URL || "https://api.padmiss.com/graphql"
+});
+
+// Create the apollo client
+const client = new ApolloClient({
+  link: httpLink,
+  cache: new InMemoryCache(),
+  connectToDevTools: true
 });
 
 export const GET_MATCHES = gql`
