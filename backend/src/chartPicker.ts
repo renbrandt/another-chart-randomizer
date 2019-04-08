@@ -151,8 +151,8 @@ const randomizeCharts = (
   return randomizedCharts;
 };
 
-export const initialState = {
-  phase: "init" as "init"
+export const initialState: State = {
+  phase: "init"
 };
 
 export const chartPickerReducer = (state: State, action: Action): State => {
