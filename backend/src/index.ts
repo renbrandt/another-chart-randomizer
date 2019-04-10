@@ -1,29 +1,36 @@
+import cors from "cors";
 import express from "express";
 import expressWs, { Application } from "express-ws";
 import * as chartPicker from "./chartPicker";
 
 const app = (express() as unknown) as Application;
 const wsInstance = expressWs(app);
+app.use(cors());
 app.use(express.json());
 
-const port = (process.env.PORT && parseInt(process.env.PORT, 10)) || 3000;
+const port = (process.env.PORT && parseInt(process.env.PORT, 10)) || 3333;
 const host = process.env.HOST || "127.0.0.1";
 
-let randomizerState: chartPicker.State = chartPicker.initialState;
+let chartPickerState: chartPicker.State = chartPicker.initialState;
+
+const getState = (): chartPicker.ExtendedState => ({
+  ...chartPickerState,
+  nextVote: chartPicker.nextVote(chartPickerState)
+});
 
 const broadcastState = () => {
-  const serializedState = JSON.stringify(randomizerState);
+  const serializedState = JSON.stringify(getState());
   wsInstance.getWss().clients.forEach(client => client.send(serializedState));
 };
 
 app.post("/reset", (_, res) => {
-  randomizerState = chartPicker.initialState;
+  chartPickerState = chartPicker.initialState;
   broadcastState();
   res.sendStatus(201);
 });
 
-app.post("/init", (req, res) => {
-  randomizerState = chartPicker.chartPickerReducer(randomizerState, {
+app.post("/start", (req, res) => {
+  chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "start",
     payload: req.body
   });
@@ -31,8 +38,8 @@ app.post("/init", (req, res) => {
   res.sendStatus(201);
 });
 
-app.post("/vote", (req, res) => {
-  randomizerState = chartPicker.chartPickerReducer(randomizerState, {
+app.post("/newVote", (req, res) => {
+  chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "newVote",
     payload: req.body
   });
@@ -41,15 +48,15 @@ app.post("/vote", (req, res) => {
 });
 
 app.post("/makePicks", (_, res) => {
-  randomizerState = chartPicker.chartPickerReducer(randomizerState, {
+  chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "makePicks"
   });
   broadcastState();
   res.sendStatus(201);
 });
 
-app.ws("/listen", ws => {
-  ws.send(JSON.stringify(randomizerState));
+app.ws("/state", ws => {
+  ws.send(JSON.stringify(getState()));
 });
 
 app.listen(port, host, () =>

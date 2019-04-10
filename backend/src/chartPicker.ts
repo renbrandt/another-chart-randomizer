@@ -1,33 +1,36 @@
-import { find, findLast, sample, times } from "lodash";
+import { find, findLast, flatMap, sample, sampleSize, times } from "lodash";
 
 // generic types
 
-interface Chart {
+export type Phase = "init" | "pick" | "done";
+
+export interface Chart {
   chartId: string;
   difficultyRating: number;
   title: string;
   subtitle: string | null;
 }
 
-interface Player {
+export interface Player {
   playerId: string;
   name: string;
 }
 
-interface Configuration {
+export interface Settings {
   charts: Chart[];
   players: Player[]; // order matters here – first player can pick first!
-  chartsToRandomize: number;
+  howManyChartsToVoteFrom: number;
+  howManyChartsToRandomize: number;
   upvoteWeight: number;
   downvoteWeight: number;
 }
 
-interface Vote {
+export interface Vote {
   type: "upvote" | "downvote";
   playerId: string;
 }
 
-interface CastVote extends Vote {
+export interface CastVote extends Vote {
   chartId: string;
 }
 
@@ -39,7 +42,7 @@ const matchingVotes = (a: Vote, b: Vote) =>
 export type Action =
   | {
       type: "start";
-      payload: Configuration;
+      payload: Settings;
     }
   | {
       type: "newVote";
@@ -51,25 +54,30 @@ export type Action =
 
 // state
 
-export type State =
+export type State = { phase: Phase } & (
   | {
       phase: "init";
     }
   | {
       phase: "pick";
-      settings: Configuration;
+      chartPool: Chart[];
+      settings: Settings;
       votes: CastVote[];
     }
   | {
       phase: "done";
-      settings: Configuration;
+      settings: Settings;
       votes: CastVote[];
       selectedCharts: Chart[];
-    };
+    });
+
+export type ExtendedState = State & {
+  nextVote: Vote | null;
+};
 
 // da magic
 
-const nextVote = (state: State): Vote | null => {
+export const nextVote = (state: State): Vote | null => {
   if (state.phase !== "pick") {
     return null;
   }
@@ -104,8 +112,9 @@ const chartIdExists = (charts: Chart[], chartId: string): boolean => {
 };
 
 const randomizeCharts = (
-  { charts, players, chartsToRandomize }: Configuration,
-  votes: CastVote[]
+  { players, howManyChartsToRandomize }: Settings,
+  votes: CastVote[],
+  charts: Chart[]
 ): Chart[] => {
   const initialPoints = players.length;
 
@@ -123,7 +132,7 @@ const randomizeCharts = (
 
   const randomizedCharts: Chart[] = [];
 
-  times(chartsToRandomize, () => {
+  times(Math.min(howManyChartsToRandomize, charts.length), () => {
     const chartWithMaxWeight = chartsWithWeights.find(
       chartWithWeight => chartWithWeight.weight === initialPoints * 2
     );
@@ -132,7 +141,7 @@ const randomizeCharts = (
       chartWithWeight => chartWithWeight.weight === 0
     );
 
-    const pool = chartsWithWeights.flatMap(chartWithWeight =>
+    const pool = flatMap(chartsWithWeights, chartWithWeight =>
       times(chartWithWeight.weight, () => chartWithWeight.chart)
     );
 
@@ -158,7 +167,15 @@ export const initialState: State = {
 export const chartPickerReducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "start":
-      return { phase: "pick", settings: action.payload, votes: [] };
+      return {
+        phase: "pick",
+        settings: action.payload,
+        votes: [],
+        chartPool: sampleSize(
+          action.payload.charts,
+          action.payload.howManyChartsToVoteFrom
+        )
+      };
 
     case "newVote": {
       if (state.phase !== "pick") {
@@ -196,7 +213,11 @@ export const chartPickerReducer = (state: State, action: Action): State => {
       return {
         ...state,
         phase: "done",
-        selectedCharts: randomizeCharts(state.settings, state.votes)
+        selectedCharts: randomizeCharts(
+          state.settings,
+          state.votes,
+          state.chartPool
+        )
       };
     }
   }

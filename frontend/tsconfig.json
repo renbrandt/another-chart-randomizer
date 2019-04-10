@@ -4,6 +4,7 @@
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "sourceMap": true,
+    "downlevelIteration": true,
     "jsx": "preserve",
     "target": "es5",
     "lib": [
@@ -23,6 +24,6 @@
     "noEmit": true
   },
   "include": [
-    "src", "src/react-app-env.d.ts"
+    "src", "src/**/*.d.ts"
   ]
 }
