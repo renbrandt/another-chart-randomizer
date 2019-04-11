@@ -86,7 +86,7 @@ const App = () => {
       <GlobalStyles />
       <Websocket url={WS_URL} onMessage={handleMessage} />
       <Container>
-        {state && (
+        {state && window.location.search.includes("admin") && (
           <ControllerContainer>
             <Controller client={client} state={state} />
           </ControllerContainer>
