@@ -45,7 +45,7 @@ const SongTitle = styled.div`
   text-align: center;
 `;
 
-const PlayerVote = styled.span<{ color: string }>`
+const PlayerVote = posed(styled.span<{ color: string }>`
   display: inline-flex;
   background-color: ${props => props.color};
   color: white;
@@ -56,7 +56,18 @@ const PlayerVote = styled.span<{ color: string }>`
   padding: 0.5rem;
   margin-top: 0.5rem;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-`;
+`)({
+  enter: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 200, mass: 0.6 }
+  },
+  exit: {
+    opacity: 0,
+    y: 50,
+    transition: { type: "spring", stiffness: 200, mass: 0.6 }
+  }
+});
 
 const StyledSong = styled.div`
   color: black;
@@ -135,20 +146,24 @@ const ChartWithVotes = posed(
         {(!!upvotes.length || !!downvotes.length) && (
           <Votes>
             <div>
-              {upvotes.map((vote, i) => (
-                <PlayerVote key={i} color={UPVOTE_COLOR}>
-                  <ThumbsUp color="white" fontSize="1rem" />
-                  {getPlayer(settings, vote.playerId)}
-                </PlayerVote>
-              ))}
+              <PoseGroup withParent={false}>
+                {upvotes.map((vote, i) => (
+                  <PlayerVote key={i} color={UPVOTE_COLOR}>
+                    <ThumbsUp color="white" fontSize="1rem" />
+                    {getPlayer(settings, vote.playerId)}
+                  </PlayerVote>
+                ))}
+              </PoseGroup>
             </div>
             <div>
-              {downvotes.map((vote, i) => (
-                <PlayerVote key={i} color={DOWNVOTE_COLOR}>
-                  <ThumbsDown color="white" fontSize="1rem" />
-                  {getPlayer(settings, vote.playerId)}
-                </PlayerVote>
-              ))}
+              <PoseGroup withParent={false}>
+                {downvotes.map((vote, i) => (
+                  <PlayerVote key={i} color={DOWNVOTE_COLOR}>
+                    <ThumbsDown color="white" fontSize="1rem" />
+                    {getPlayer(settings, vote.playerId)}
+                  </PlayerVote>
+                ))}
+              </PoseGroup>
             </div>
           </Votes>
         )}
