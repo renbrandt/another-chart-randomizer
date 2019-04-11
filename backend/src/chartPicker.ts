@@ -21,8 +21,6 @@ export interface Settings {
   players: Player[]; // order matters here – first player can pick first!
   howManyChartsToVoteFrom: number;
   howManyChartsToRandomize: number;
-  upvoteWeight: number;
-  downvoteWeight: number;
 }
 
 export interface Vote {
@@ -112,11 +110,12 @@ const chartIdExists = (charts: Chart[], chartId: string): boolean => {
 };
 
 const randomizeCharts = (
-  { players, howManyChartsToRandomize }: Settings,
+  { howManyChartsToRandomize }: Settings,
   votes: CastVote[],
   charts: Chart[]
 ): Chart[] => {
-  const initialPoints = players.length;
+  const initialPoints = 100;
+  const FACTOR = 2;
 
   let chartsWithWeights = charts.map(chart => {
     const upvotes = votes.filter(
@@ -127,31 +126,23 @@ const randomizeCharts = (
       vote => vote.chartId === chart.chartId && vote.type === "downvote"
     ).length;
 
-    return { chart, weight: initialPoints + upvotes - downvotes };
+    return {
+      chart,
+      weight: Math.ceil(initialPoints * Math.pow(FACTOR, upvotes - downvotes))
+    };
   });
 
   const randomizedCharts: Chart[] = [];
 
   times(Math.min(howManyChartsToRandomize, charts.length), () => {
-    const chartWithMaxWeight = chartsWithWeights.find(
-      chartWithWeight => chartWithWeight.weight === initialPoints * 2
-    );
-
-    const chartsWithNoWeight = chartsWithWeights.filter(
-      chartWithWeight => chartWithWeight.weight === 0
-    );
-
     const pool = flatMap(chartsWithWeights, chartWithWeight =>
       times(chartWithWeight.weight, () => chartWithWeight.chart)
     );
 
-    const nextChart = chartWithMaxWeight
-      ? chartWithMaxWeight.chart
-      : pool.length > 0
-      ? sample(pool)!
-      : chartsWithNoWeight[0].chart;
+    const nextChart = sample(pool)!;
 
     randomizedCharts.push(nextChart);
+
     chartsWithWeights = chartsWithWeights.filter(
       chartWithWeight => chartWithWeight.chart.chartId !== nextChart.chartId
     );
@@ -192,8 +183,8 @@ export const chartPickerReducer = (state: State, action: Action): State => {
         throw new Error("This vote cannot be made right now");
       }
 
-      if (!chartIdExists(state.settings.charts, action.payload.chartId)) {
-        throw new Error("Chart does not exist");
+      if (!chartIdExists(state.chartPool, action.payload.chartId)) {
+        throw new Error("Chart does not exist in pool");
       }
 
       return { ...state, votes: [...state.votes, action.payload] };

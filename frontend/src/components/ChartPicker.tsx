@@ -80,6 +80,7 @@ const Header = styled.h1`
   font-size: 1.75rem;
   margin-bottom: 1rem;
   font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 `;
 
 const getPlayer = (settings: Settings, id: string): string => {

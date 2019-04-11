@@ -17,8 +17,6 @@ export interface Settings {
   players: Player[]; // order matters here – first player can pick first!
   howManyChartsToVoteFrom: number;
   howManyChartsToRandomize: number;
-  upvoteWeight: number;
-  downvoteWeight: number;
 }
 
 export interface Vote {

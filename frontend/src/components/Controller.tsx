@@ -10,6 +10,8 @@ import { Chart, ExtendedState, Player, Settings } from "../types/voteTypes";
 interface Values {
   charts: string;
   players: string;
+  howManyChartsToVoteFrom: string;
+  howManyChartsToRandomize: string;
 }
 
 const validationSchema = yup.object().shape({
@@ -25,9 +27,35 @@ interface Props {
   state: ExtendedState;
 }
 
+const getInitialValues = (): Values => {
+  try {
+    const storedValues = localStorage.getItem("formInitialValues");
+    const parsedStoredValues = storedValues && JSON.parse(storedValues);
+    return {
+      charts: (parsedStoredValues && parsedStoredValues.charts) || "",
+      players: (parsedStoredValues && parsedStoredValues.players) || "",
+      howManyChartsToVoteFrom:
+        (parsedStoredValues && parsedStoredValues.howManyChartsToVoteFrom) ||
+        "6",
+      howManyChartsToRandomize:
+        (parsedStoredValues && parsedStoredValues.howManyChartsToRandomize) ||
+        "4"
+    };
+  } catch {
+    return {
+      charts: "",
+      players: "",
+      howManyChartsToVoteFrom: "6",
+      howManyChartsToRandomize: "4"
+    };
+  }
+};
+
 const Controller = React.memo<Props>(({ client, state }) => {
   const submitStart = React.useCallback(
     async (data: Values) => {
+      localStorage.setItem("formInitialValues", JSON.stringify(data));
+
       const players: Player[] = data.players
         .split("\n")
         .map(name => name.trim())
@@ -48,10 +76,8 @@ const Controller = React.memo<Props>(({ client, state }) => {
       const settings: Settings = {
         players,
         charts,
-        upvoteWeight: 1,
-        downvoteWeight: 1,
-        howManyChartsToRandomize: 4,
-        howManyChartsToVoteFrom: 8
+        howManyChartsToRandomize: parseInt(data.howManyChartsToRandomize, 10),
+        howManyChartsToVoteFrom: parseInt(data.howManyChartsToVoteFrom, 10)
       };
 
       await client.post("/start", settings);
@@ -72,8 +98,9 @@ const Controller = React.memo<Props>(({ client, state }) => {
   if (state.phase === "init") {
     return (
       <Formik<Values>
+        isInitialValid={true}
         validationSchema={validationSchema}
-        initialValues={{ charts: "", players: "" }}
+        initialValues={getInitialValues()}
         onSubmit={submitStart}
       >
         {({ handleSubmit, isSubmitting, isValid, errors }) => (
@@ -102,6 +129,24 @@ const Controller = React.memo<Props>(({ client, state }) => {
                     13 Loituma HARDCORE`}
                 rows={20}
                 cols={80}
+              />
+            </label>
+
+            <label>
+              <p>How many charts to vote from</p>
+              <Field
+                component="input"
+                type="number"
+                name="howManyChartsToVoteFrom"
+              />
+            </label>
+
+            <label>
+              <p>How many charts to randomize</p>
+              <Field
+                component="input"
+                type="number"
+                name="howManyChartsToRandomize"
               />
             </label>
 
