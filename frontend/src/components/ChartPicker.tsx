@@ -1,11 +1,30 @@
 import React from "react";
 import IosThumbsDown from "react-ionicons/lib/IosThumbsDown";
 import IosThumbsUp from "react-ionicons/lib/IosThumbsUp";
+import posed, { PoseGroup } from "react-pose";
 import styled from "styled-components";
 import { CastVote, Chart, ExtendedState, Settings } from "../types/voteTypes";
 
 const DOWNVOTE_COLOR = "#F1396D";
 const UPVOTE_COLOR = "#8F9924";
+
+const comeFromBottom = {
+  preEnter: {
+    opacity: 0,
+    y: 50,
+    transition: { type: "spring", stiffness: 200, mass: 0.6 }
+  },
+  enter: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 200, mass: 0.6 }
+  },
+  exit: {
+    opacity: 0,
+    y: -50,
+    transition: { type: "spring", stiffness: 200, mass: 0.6 }
+  }
+};
 
 const SongRating = styled.span`
   display: inline-block;
@@ -66,7 +85,7 @@ const NextPlayerVote = styled(PlayerVote)`
   margin: 0;
 `;
 
-const NextUp = styled.div`
+const NextUp = posed(styled.div`
   display: inline-flex;
   align-items: center;
   margin-bottom: 1rem;
@@ -74,117 +93,138 @@ const NextUp = styled.div`
   & > *:first-child {
     margin-right: 0.5rem;
   }
-`;
+`)(comeFromBottom);
 
-const Header = styled.h1`
+const Header = posed(styled.h1`
   font-size: 1.75rem;
   margin-bottom: 1rem;
   font-weight: 500;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-`;
+`)(comeFromBottom);
 
 const getPlayer = (settings: Settings, id: string): string => {
   const player = settings.players.find(p => p.playerId === id);
   return player ? player.name : "UNKNOWN";
 };
 
-const ChartWithVotes = React.memo<{
-  chart: Chart;
-  votes: CastVote[];
-  settings: Settings;
-  onClick?: () => void;
-}>(({ chart, votes, settings, onClick }) => {
-  const downvotes = votes.filter(vote => vote.type === "downvote");
-  const upvotes = votes.filter(vote => vote.type === "upvote");
-
-  return (
-    <StyledSong onClick={onClick}>
-      <SongTitle>
-        <SongRating>{chart.difficultyRating}</SongRating> {chart.title}
-      </SongTitle>
-
-      {(!!upvotes.length || !!downvotes.length) && (
-        <Votes>
-          <div>
-            {upvotes.map((vote, i) => (
-              <PlayerVote key={i} color={UPVOTE_COLOR}>
-                <ThumbsUp color="white" fontSize="1rem" />
-                {getPlayer(settings, vote.playerId)}
-              </PlayerVote>
-            ))}
-          </div>
-          <div>
-            {downvotes.map((vote, i) => (
-              <PlayerVote key={i} color={DOWNVOTE_COLOR}>
-                <ThumbsDown color="white" fontSize="1rem" />
-                {getPlayer(settings, vote.playerId)}
-              </PlayerVote>
-            ))}
-          </div>
-        </Votes>
-      )}
-    </StyledSong>
-  );
+const Section = posed.div({
+  preEnter: { opacity: 0, staggerChildren: 30 },
+  enter: { opacity: 1, staggerChildren: 30, delayChildren: 500, delay: 500 },
+  exit: { opacity: 0, staggerChildren: 30 }
 });
+
+const ChartWithVotes = posed(
+  React.forwardRef<
+    any,
+    {
+      chart: Chart;
+      votes: CastVote[];
+      settings: Settings;
+      onClick?: () => void;
+    }
+  >(({ chart, votes, settings, onClick }, ref) => {
+    const downvotes = votes.filter(vote => vote.type === "downvote");
+    const upvotes = votes.filter(vote => vote.type === "upvote");
+
+    return (
+      <StyledSong onClick={onClick} ref={ref}>
+        <SongTitle>
+          <SongRating>{chart.difficultyRating}</SongRating> {chart.title}
+        </SongTitle>
+
+        {(!!upvotes.length || !!downvotes.length) && (
+          <Votes>
+            <div>
+              {upvotes.map((vote, i) => (
+                <PlayerVote key={i} color={UPVOTE_COLOR}>
+                  <ThumbsUp color="white" fontSize="1rem" />
+                  {getPlayer(settings, vote.playerId)}
+                </PlayerVote>
+              ))}
+            </div>
+            <div>
+              {downvotes.map((vote, i) => (
+                <PlayerVote key={i} color={DOWNVOTE_COLOR}>
+                  <ThumbsDown color="white" fontSize="1rem" />
+                  {getPlayer(settings, vote.playerId)}
+                </PlayerVote>
+              ))}
+            </div>
+          </Votes>
+        )}
+      </StyledSong>
+    );
+  })
+)(comeFromBottom);
 
 const ChartPicker = React.memo<{
   state: ExtendedState;
   onChartClick?: (chart: Chart) => void;
 }>(({ state, onChartClick }) => {
-  if (state.phase === "pick") {
-    const { nextVote, settings, chartPool, votes } = state;
+  const contents = React.useMemo(() => {
+    if (state.phase === "pick") {
+      const { nextVote, settings, chartPool, votes } = state;
 
-    return (
-      <>
-        <Header>Song selection</Header>
+      return (
+        <Section key="selection">
+          <Header>Song selection</Header>
 
-        {nextVote && (
-          <NextUp>
-            <div>Next up:</div>
-            <NextPlayerVote
-              color={nextVote.type === "upvote" ? UPVOTE_COLOR : DOWNVOTE_COLOR}
-            >
-              {nextVote.type === "upvote" ? (
-                <ThumbsUp color="white" fontSize="1rem" />
-              ) : (
-                <ThumbsDown color="white" fontSize="1rem" />
-              )}
-              {getPlayer(settings, nextVote.playerId)}
-            </NextPlayerVote>
-          </NextUp>
-        )}
+          {nextVote && (
+            <NextUp>
+              <div>Next up:</div>
+              <NextPlayerVote
+                color={
+                  nextVote.type === "upvote" ? UPVOTE_COLOR : DOWNVOTE_COLOR
+                }
+              >
+                {nextVote.type === "upvote" ? (
+                  <ThumbsUp color="white" fontSize="1rem" />
+                ) : (
+                  <ThumbsDown color="white" fontSize="1rem" />
+                )}
+                {getPlayer(settings, nextVote.playerId)}
+              </NextPlayerVote>
+            </NextUp>
+          )}
 
-        {chartPool.map(chart => (
-          <ChartWithVotes
-            settings={settings}
-            key={chart.chartId}
-            chart={chart}
-            votes={votes.filter(vote => vote.chartId === chart.chartId)}
-            onClick={onChartClick && (() => onChartClick(chart))}
-          />
-        ))}
-      </>
-    );
-  }
+          {chartPool.map(chart => (
+            <ChartWithVotes
+              settings={settings}
+              key={chart.chartId}
+              chart={chart}
+              votes={votes.filter(vote => vote.chartId === chart.chartId)}
+              onClick={onChartClick && (() => onChartClick(chart))}
+            />
+          ))}
+        </Section>
+      );
+    }
 
-  if (state.phase === "done") {
-    return (
-      <>
-        <Header>Selected songs</Header>
+    if (state.phase === "done") {
+      return (
+        <Section key="done">
+          <Header>Selected songs</Header>
 
-        {state.selectedCharts.map(chart => (
-          <ChartWithVotes
-            settings={state.settings}
-            key={chart.chartId}
-            chart={chart}
-            votes={[]}
-          />
-        ))}
-      </>
-    );
-  }
+          {state.selectedCharts.map(chart => (
+            <ChartWithVotes
+              settings={state.settings}
+              key={chart.chartId}
+              chart={chart}
+              votes={[]}
+            />
+          ))}
+        </Section>
+      );
+    }
 
-  return null;
+    return <Section key="unknown" />;
+  }, [state, onChartClick]);
+
+  return (
+    <PoseGroup preEnterPose="preEnter" flipMove={true}>
+      {contents}
+    </PoseGroup>
+  );
 });
 
 export default ChartPicker;

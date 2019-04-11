@@ -52,6 +52,15 @@ const Center = styled.div`
   text-align: center;
 `;
 
+const ControllerContainer = styled.div`
+  padding: 2rem;
+
+  label {
+    display: block;
+    margin-bottom: 1rem;
+  }
+`;
+
 const App = () => {
   const [state, setState] = React.useState<ExtendedState | null>(null);
 
@@ -78,9 +87,9 @@ const App = () => {
       <Websocket url={WS_URL} onMessage={handleMessage} />
       <Container>
         {state && (
-          <div>
+          <ControllerContainer>
             <Controller client={client} state={state} />
-          </div>
+          </ControllerContainer>
         )}
         {state && (
           <SelectionContainer>
