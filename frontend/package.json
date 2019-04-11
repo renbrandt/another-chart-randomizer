@@ -23,6 +23,8 @@
     "css-reset": "^0.0.1",
     "formik": "^1.5.2",
     "graphql-tag": "^2.10.1",
+    "http-serve": "^1.0.1",
+    "http-server": "^0.11.1",
     "lodash-es": "^4.17.11",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -39,6 +41,7 @@
     "yup": "^0.27.0"
   },
   "scripts": {
+    "build-and-serve": "npm run build && http-server build/",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
