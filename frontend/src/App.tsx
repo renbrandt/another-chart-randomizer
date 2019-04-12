@@ -5,6 +5,7 @@ import "reset-css";
 import styled, { createGlobalStyle } from "styled-components";
 import ChartPicker from "./components/ChartPicker";
 import Controller from "./components/Controller";
+import PadmissLatestScores from "./components/PadmissLatestScores";
 import { CastVote, Chart, ExtendedState, Vote } from "./types/voteTypes";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3333";
@@ -27,6 +28,7 @@ const GlobalStyles = createGlobalStyle`
 const Container = styled.div`
   display: flex;
   height: 100%;
+  max-height: 100%;
   justify-content: stretch;
 
   > * {
@@ -52,12 +54,24 @@ const Center = styled.div`
   text-align: center;
 `;
 
-const ControllerContainer = styled.div`
-  padding: 2rem;
+const AdminContainer = styled.div`
+  display: flex;
+  flex-direction: column;
 
-  label {
-    display: block;
-    margin-bottom: 1rem;
+  > * {
+    flex-basis: 30%;
+    padding: 2rem;
+    overflow: auto;
+
+    &:first-child {
+      flex-basis: 70%;
+      border-bottom: 5px solid black;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 1rem;
+    }
   }
 `;
 
@@ -87,9 +101,14 @@ const App = () => {
       <Websocket url={WS_URL} onMessage={handleMessage} />
       <Container>
         {state && window.location.search.includes("admin") && (
-          <ControllerContainer>
-            <Controller client={client} state={state} />
-          </ControllerContainer>
+          <AdminContainer>
+            <div>
+              <Controller client={client} state={state} />
+            </div>
+            <div>
+              <PadmissLatestScores />
+            </div>
+          </AdminContainer>
         )}
         {state && (
           <SelectionContainer>
