@@ -113,6 +113,8 @@ const Header = posed(styled.h1`
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 `)(comeFromBottom);
 
+const Text = posed.p(comeFromBottom);
+
 const getPlayer = (settings: Settings, id: string): string => {
   const player = settings.players.find(p => p.playerId === id);
   return player ? player.name : "UNKNOWN";
@@ -233,6 +235,8 @@ const ChartPicker = React.memo<{
               votes={[]}
             />
           ))}
+
+          <Text>Done!</Text>
         </Section>
       );
     }

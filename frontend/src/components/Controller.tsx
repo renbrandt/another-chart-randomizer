@@ -91,6 +91,10 @@ const Controller = React.memo<Props>(({ client, state }) => {
     }
   }, [client]);
 
+  const submitUndo = React.useCallback(async () => {
+    await client.post("/undoVote");
+  }, [client]);
+
   const submitDone = React.useCallback(async () => {
     await client.post("/makePicks");
   }, [client]);
@@ -166,7 +170,10 @@ const Controller = React.memo<Props>(({ client, state }) => {
   if (state.phase === "pick") {
     return (
       <>
-        <button onClick={submitReset}>Resetore</button>
+        <button onClick={submitReset}>Reset</button>
+        <button onClick={submitUndo} disabled={state.votes.length === 0}>
+          Undo
+        </button>
         <button onClick={submitDone} disabled={state.nextVote !== null}>
           Done
         </button>

@@ -55,6 +55,14 @@ app.post("/makePicks", (_, res) => {
   res.sendStatus(201);
 });
 
+app.post("/undoVote", (_, res) => {
+  chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
+    type: "undoVote"
+  });
+  broadcastState();
+  res.sendStatus(201);
+});
+
 app.ws("/state", ws => {
   ws.send(JSON.stringify(getState()));
 });

@@ -48,7 +48,8 @@ export type Action =
     }
   | {
       type: "makePicks";
-    };
+    }
+  | { type: "undoVote" };
 
 // state
 
@@ -209,6 +210,21 @@ export const chartPickerReducer = (state: State, action: Action): State => {
           state.votes,
           state.chartPool
         )
+      };
+    }
+
+    case "undoVote": {
+      if (state.phase !== "pick") {
+        throw new Error("Illegal phase!");
+      }
+
+      if (state.votes.length === 0) {
+        return state;
+      }
+
+      return {
+        ...state,
+        votes: state.votes.slice(0, -1)
       };
     }
   }
