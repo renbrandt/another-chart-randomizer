@@ -120,7 +120,12 @@ const getPlayer = (settings: Settings, id: string): string => {
 
 const Section = posed.div({
   preEnter: { opacity: 0, staggerChildren: 30 },
-  enter: { opacity: 1, staggerChildren: 30, delayChildren: 500, delay: 500 },
+  enter: {
+    opacity: 1,
+    staggerChildren: ({ slow }: any) => (slow ? 2000 : 30),
+    delayChildren: 500,
+    delay: 500
+  },
   exit: { opacity: 0, staggerChildren: 30 }
 });
 
@@ -217,7 +222,7 @@ const ChartPicker = React.memo<{
 
     if (state.phase === "done") {
       return (
-        <Section key="done">
+        <Section key="done" slow={true}>
           <Header>Selected songs</Header>
 
           {state.selectedCharts.map(chart => (
