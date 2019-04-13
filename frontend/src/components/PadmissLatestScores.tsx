@@ -10,7 +10,10 @@ const Scores = styled.pre`
   font-family: monospace;
 `;
 
-const UpdateButton = styled.button``;
+const Container = styled.div`
+  height: 50%;
+  overflow: auto;
+`;
 
 const PadmissLatestScores = () => {
   const [scores, setScores] = React.useState<null | any>(null);
@@ -71,8 +74,8 @@ const PadmissLatestScores = () => {
   }, [updateScores]);
 
   return (
-    <>
-      <UpdateButton onClick={updateScores}>Update</UpdateButton>
+    <Container>
+      <button onClick={updateScores}>Update</button>
       <Scores>
         {scores &&
           scores.Scores.docs
@@ -83,7 +86,7 @@ const PadmissLatestScores = () => {
             )
             .join("\n")}
       </Scores>
-    </>
+    </Container>
   );
 };
 

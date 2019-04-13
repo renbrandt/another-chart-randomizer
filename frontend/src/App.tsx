@@ -21,7 +21,11 @@ const GlobalStyles = createGlobalStyle`
   html, body, #root {
     width: 100%;
     height: 100%;
-    background: transparent;
+    background-color: transparent;
+  }
+
+  *, *:before, *:after {
+    box-sizing: border-box;
   }
 `;
 
@@ -55,24 +59,17 @@ const Center = styled.div`
 `;
 
 const AdminContainer = styled.div`
+  padding: 2rem;
+
+  label {
+    display: block;
+    margin-bottom: 1rem;
+  }
+`;
+
+const Split = styled.div`
   display: flex;
   flex-direction: column;
-
-  > * {
-    flex-basis: 30%;
-    padding: 2rem;
-    overflow: auto;
-
-    &:first-child {
-      flex-basis: 70%;
-      border-bottom: 5px solid black;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 1rem;
-    }
-  }
 `;
 
 const App = () => {
@@ -95,27 +92,28 @@ const App = () => {
     [state]
   );
 
+  const isAdmin = state && window.location.search.includes("admin");
+
   return (
     <>
       <GlobalStyles />
       <Websocket url={WS_URL} onMessage={handleMessage} />
       <Container>
-        {state && window.location.search.includes("admin") && (
+        {isAdmin && state && (
           <AdminContainer>
-            <div>
-              <Controller client={client} state={state} />
-            </div>
-            <div>
-              <PadmissLatestScores />
-            </div>
+            <Controller client={client} state={state} />
           </AdminContainer>
         )}
         {state && (
-          <SelectionContainer>
-            <Center>
-              <ChartPicker state={state} onChartClick={handleChartClick} />
-            </Center>
-          </SelectionContainer>
+          <Split>
+            <SelectionContainer>
+              <Center>
+                <ChartPicker state={state} onChartClick={handleChartClick} />
+              </Center>
+            </SelectionContainer>
+
+            {isAdmin && <PadmissLatestScores />}
+          </Split>
         )}
       </Container>
     </>
