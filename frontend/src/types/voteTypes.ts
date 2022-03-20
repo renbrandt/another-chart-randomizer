@@ -17,6 +17,7 @@ export interface Settings {
   players: Player[]; // order matters here – first player can pick first!
   howManyChartsToVoteFrom: number;
   howManyChartsToRandomize: number;
+  requiredDifficulties: number[];
 }
 
 export interface Vote {

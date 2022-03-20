@@ -75,7 +75,7 @@ const PadmissLatestScores = () => {
 
   return (
     <Container>
-      <button onClick={updateScores}>Update</button>
+      {/* <button onClick={updateScores}>Update</button>
       <Scores>
         {scores &&
           scores.Scores.docs
@@ -85,7 +85,7 @@ const PadmissLatestScores = () => {
               }  //  ${(s.scoreValue * 100).toFixed(2)}`.trim()
             )
             .join("\n")}
-      </Scores>
+      </Scores> */}
     </Container>
   );
 };

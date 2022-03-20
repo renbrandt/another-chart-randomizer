@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import { stripIndent } from "common-tags";
 import { Field, Formik } from "formik";
-import { isEmpty } from "lodash";
+import { isEmpty, uniq } from "lodash";
 import React from "react";
 import uuid from "uuid";
 import * as yup from "yup";
@@ -12,6 +12,7 @@ interface Values {
   players: string;
   howManyChartsToVoteFrom: string;
   howManyChartsToRandomize: string;
+  requiredDifficulties?: number[];
 }
 
 const validationSchema = yup.object().shape({
@@ -77,7 +78,8 @@ const Controller = React.memo<Props>(({ client, state }) => {
         players,
         charts,
         howManyChartsToRandomize: parseInt(data.howManyChartsToRandomize, 10),
-        howManyChartsToVoteFrom: parseInt(data.howManyChartsToVoteFrom, 10)
+        howManyChartsToVoteFrom: parseInt(data.howManyChartsToVoteFrom, 10),
+        requiredDifficulties: uniq(charts.map(x => x.difficultyRating))
       };
 
       await client.post("/start", settings);
