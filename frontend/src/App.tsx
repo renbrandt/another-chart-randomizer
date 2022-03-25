@@ -5,8 +5,7 @@ import "reset-css";
 import styled, { createGlobalStyle } from "styled-components";
 import ChartPicker from "./components/ChartPicker";
 import Controller from "./components/Controller";
-import PadmissLatestScores from "./components/PadmissLatestScores";
-import { CastVote, Chart, ExtendedState, Vote } from "./types/voteTypes";
+import { CastVote, Chart, ExtendedState } from "./types/voteTypes";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3333";
 const WS_URL = process.env.REACT_APP_WS_URL || "ws://localhost:3333/state";
@@ -111,8 +110,6 @@ const App = () => {
                 <ChartPicker state={state} onChartClick={handleChartClick} />
               </Center>
             </SelectionContainer>
-
-            {isAdmin && <PadmissLatestScores />}
           </Split>
         )}
       </Container>

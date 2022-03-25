@@ -40,36 +40,36 @@ const matchingVotes = (a: Vote, b: Vote) =>
 
 export type Action =
   | {
-    type: "start";
-    payload: Settings;
-  }
+      type: "start";
+      payload: Settings;
+    }
   | {
-    type: "newVote";
-    payload: CastVote;
-  }
+      type: "newVote";
+      payload: CastVote;
+    }
   | {
-    type: "makePicks";
-  }
+      type: "makePicks";
+    }
   | { type: "undoVote" };
 
 // state
 
 export type State = { phase: Phase } & (
   | {
-    phase: "init";
-  }
+      phase: "init";
+    }
   | {
-    phase: "pick";
-    chartPool: Chart[];
-    settings: Settings;
-    votes: CastVote[];
-  }
+      phase: "pick";
+      chartPool: Chart[];
+      settings: Settings;
+      votes: CastVote[];
+    }
   | {
-    phase: "done";
-    settings: Settings;
-    votes: CastVote[];
-    selectedCharts: Chart[];
-  });
+      phase: "done";
+      settings: Settings;
+      votes: CastVote[];
+      selectedCharts: Chart[];
+    });
 
 export type ExtendedState = State & {
   nextVote: Vote | null;
@@ -111,28 +111,42 @@ const chartIdExists = (charts: Chart[], chartId: string): boolean => {
   return charts.some(chart => chart.chartId === chartId);
 };
 
-function getChartPool(charts: Chart[], howManyChartsToVoteFrom: number, requiredDifficulties: number[]): Chart[] {
+function getChartPool(
+  charts: Chart[],
+  howManyChartsToVoteFrom: number,
+  requiredDifficulties: number[]
+): Chart[] {
   // First randomize the required charts
-  
-  const requiredRandomizedCharts:Chart[] = requiredDifficulties.map(diff => {
+  const requiredRandomizedCharts: Chart[] = requiredDifficulties.map(diff => {
     // Get the charts with the specified difficulty rating
-    const chartsOfRequiredDiff:Chart[] = charts.filter(x => x.difficultyRating === diff);
+    const chartsOfRequiredDiff: Chart[] = charts.filter(
+      x => x.difficultyRating === diff
+    );
 
-    if (chartsOfRequiredDiff.length === 0)
+    if (chartsOfRequiredDiff.length === 0) {
       throw new Error(`No charts exist for difficulty ${diff}!!!!`);
+    }
 
     // Pick one of the charts of the specified difficulty rating by random
     return sample(chartsOfRequiredDiff)!;
   });
 
   // Then randomize the remaining charts
-  const remainingCharts = Math.max(0, howManyChartsToVoteFrom - requiredRandomizedCharts.length);
+  const remainingCharts = Math.max(
+    0,
+    howManyChartsToVoteFrom - requiredRandomizedCharts.length
+  );
   // Do not allow to pick the same chart multiple times
-  const chartsExceptRequiredCharts = charts.filter(x => !requiredRandomizedCharts.includes(x));
+  const chartsExceptRequiredCharts = charts.filter(
+    x => !requiredRandomizedCharts.includes(x)
+  );
 
   // Pick the remaining charts by random
-  console.log('chartsExpcetet', chartsExceptRequiredCharts);
-  const otherRandomizedCharts:Chart[] = sampleSize(chartsExceptRequiredCharts, remainingCharts);
+  const otherRandomizedCharts: Chart[] = sampleSize(
+    chartsExceptRequiredCharts,
+    remainingCharts
+  );
+
   return [...requiredRandomizedCharts, ...otherRandomizedCharts];
 }
 
