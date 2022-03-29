@@ -1,9 +1,11 @@
 import cors from "cors";
 import express from "express";
 import expressWs, { Application } from "express-ws";
-import * as chartPicker from "./chartPicker";
+import { BracketData } from "./BracketDataParser.js";
+import * as chartPicker from "./chartPicker.js";
+import * as sheetsDataFetcher from "./sheetsDataFetcher.js";
 
-const app = (express() as unknown) as Application;
+const app = express() as unknown as Application;
 const wsInstance = expressWs(app);
 app.use(cors());
 app.use(express.json());
@@ -15,12 +17,12 @@ let chartPickerState: chartPicker.State = chartPicker.initialState;
 
 const getState = (): chartPicker.ExtendedState => ({
   ...chartPickerState,
-  nextVote: chartPicker.nextVote(chartPickerState)
+  nextVote: chartPicker.nextVote(chartPickerState),
 });
 
 const broadcastState = () => {
   const serializedState = JSON.stringify(getState());
-  wsInstance.getWss().clients.forEach(client => client.send(serializedState));
+  wsInstance.getWss().clients.forEach((client) => client.send(serializedState));
 };
 
 app.post("/reset", (_, res) => {
@@ -29,10 +31,36 @@ app.post("/reset", (_, res) => {
   res.sendStatus(201);
 });
 
+app.get("/groups/:bracket", async (req, res) => {
+  const bracket = req.params.bracket;
+  let bracketData: BracketData | undefined;
+
+  switch (bracket) {
+    case "upper":
+      bracketData = await sheetsDataFetcher.fetchDataFromGoogleApi(
+        sheetsDataFetcher.upperBracketTab
+      );
+      break;
+    case "lower":
+      bracketData = await sheetsDataFetcher.fetchDataFromGoogleApi(
+        sheetsDataFetcher.lowerBracketTab
+      );
+      break;
+    default:
+      return res.sendStatus(400);
+  }
+
+  if (!bracketData) {
+    return res.sendStatus(500);
+  }
+
+  res.json(bracketData);
+});
+
 app.post("/start", (req, res) => {
   chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "start",
-    payload: req.body
+    payload: req.body,
   });
   broadcastState();
   res.sendStatus(201);
@@ -41,7 +69,7 @@ app.post("/start", (req, res) => {
 app.post("/newVote", (req, res) => {
   chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "newVote",
-    payload: req.body
+    payload: req.body,
   });
   broadcastState();
   res.sendStatus(201);
@@ -49,7 +77,7 @@ app.post("/newVote", (req, res) => {
 
 app.post("/makePicks", (_, res) => {
   chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
-    type: "makePicks"
+    type: "makePicks",
   });
   broadcastState();
   res.sendStatus(201);
@@ -57,13 +85,13 @@ app.post("/makePicks", (_, res) => {
 
 app.post("/undoVote", (_, res) => {
   chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
-    type: "undoVote"
+    type: "undoVote",
   });
   broadcastState();
   res.sendStatus(201);
 });
 
-app.ws("/state", ws => {
+app.ws("/state", (ws) => {
   ws.send(JSON.stringify(getState()));
 });
 

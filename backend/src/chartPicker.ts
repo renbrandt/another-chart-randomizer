@@ -1,4 +1,5 @@
-import { find, findLast, flatMap, sample, sampleSize, times } from "lodash";
+import lodash from "lodash";
+const { find, findLast, flatMap, sample, sampleSize, times } = lodash;
 
 // generic types
 
@@ -69,7 +70,8 @@ export type State = { phase: Phase } & (
       settings: Settings;
       votes: CastVote[];
       selectedCharts: Chart[];
-    });
+    }
+);
 
 export type ExtendedState = State & {
   nextVote: Vote | null;
@@ -85,7 +87,7 @@ export const nextVote = (state: State): Vote | null => {
   const nextDownvotePlayer = find(
     state.settings.players,
     ({ playerId }) =>
-      !state.votes.some(vote =>
+      !state.votes.some((vote) =>
         matchingVotes(vote, { playerId, type: "downvote" })
       )
   );
@@ -93,7 +95,7 @@ export const nextVote = (state: State): Vote | null => {
   const nextUpvotePlayer = findLast(
     state.settings.players,
     ({ playerId }) =>
-      !state.votes.some(vote =>
+      !state.votes.some((vote) =>
         matchingVotes(vote, { playerId, type: "upvote" })
       )
   );
@@ -108,7 +110,7 @@ export const nextVote = (state: State): Vote | null => {
 };
 
 const chartIdExists = (charts: Chart[], chartId: string): boolean => {
-  return charts.some(chart => chart.chartId === chartId);
+  return charts.some((chart) => chart.chartId === chartId);
 };
 
 function getChartPool(
@@ -117,10 +119,10 @@ function getChartPool(
   requiredDifficulties: number[]
 ): Chart[] {
   // First randomize the required charts
-  const requiredRandomizedCharts: Chart[] = requiredDifficulties.map(diff => {
+  const requiredRandomizedCharts: Chart[] = requiredDifficulties.map((diff) => {
     // Get the charts with the specified difficulty rating
     const chartsOfRequiredDiff: Chart[] = charts.filter(
-      x => x.difficultyRating === diff
+      (x) => x.difficultyRating === diff
     );
 
     if (chartsOfRequiredDiff.length === 0) {
@@ -138,7 +140,7 @@ function getChartPool(
   );
   // Do not allow to pick the same chart multiple times
   const chartsExceptRequiredCharts = charts.filter(
-    x => !requiredRandomizedCharts.includes(x)
+    (x) => !requiredRandomizedCharts.includes(x)
   );
 
   // Pick the remaining charts by random
@@ -158,25 +160,25 @@ const randomizeCharts = (
   const initialPoints = 100;
   const FACTOR = 2;
 
-  let chartsWithWeights = charts.map(chart => {
+  let chartsWithWeights = charts.map((chart) => {
     const upvotes = votes.filter(
-      vote => vote.chartId === chart.chartId && vote.type === "upvote"
+      (vote) => vote.chartId === chart.chartId && vote.type === "upvote"
     ).length;
 
     const downvotes = votes.filter(
-      vote => vote.chartId === chart.chartId && vote.type === "downvote"
+      (vote) => vote.chartId === chart.chartId && vote.type === "downvote"
     ).length;
 
     return {
       chart,
-      weight: Math.ceil(initialPoints * Math.pow(FACTOR, upvotes - downvotes))
+      weight: Math.ceil(initialPoints * Math.pow(FACTOR, upvotes - downvotes)),
     };
   });
 
   const randomizedCharts: Chart[] = [];
 
   times(Math.min(howManyChartsToRandomize, charts.length), () => {
-    const pool = flatMap(chartsWithWeights, chartWithWeight =>
+    const pool = flatMap(chartsWithWeights, (chartWithWeight) =>
       times(chartWithWeight.weight, () => chartWithWeight.chart)
     );
 
@@ -185,7 +187,7 @@ const randomizeCharts = (
     randomizedCharts.push(nextChart);
 
     chartsWithWeights = chartsWithWeights.filter(
-      chartWithWeight => chartWithWeight.chart.chartId !== nextChart.chartId
+      (chartWithWeight) => chartWithWeight.chart.chartId !== nextChart.chartId
     );
   });
 
@@ -193,7 +195,7 @@ const randomizeCharts = (
 };
 
 export const initialState: State = {
-  phase: "init"
+  phase: "init",
 };
 
 export const chartPickerReducer = (state: State, action: Action): State => {
@@ -207,7 +209,7 @@ export const chartPickerReducer = (state: State, action: Action): State => {
           action.payload.charts,
           action.payload.howManyChartsToVoteFrom,
           action.payload.requiredDifficulties
-        )
+        ),
       };
 
     case "newVote": {
@@ -250,7 +252,7 @@ export const chartPickerReducer = (state: State, action: Action): State => {
           state.settings,
           state.votes,
           state.chartPool
-        )
+        ),
       };
     }
 
@@ -265,7 +267,7 @@ export const chartPickerReducer = (state: State, action: Action): State => {
 
       return {
         ...state,
-        votes: state.votes.slice(0, -1)
+        votes: state.votes.slice(0, -1),
       };
     }
   }
