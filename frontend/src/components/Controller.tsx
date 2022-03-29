@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import { AxiosInstance } from "axios";
 import { stripIndent } from "common-tags";
 import { Field, Formik } from "formik";
 import { isEmpty, uniq } from "lodash";
@@ -6,6 +6,15 @@ import React from "react";
 import uuid from "uuid";
 import * as yup from "yup";
 import { Chart, ExtendedState, Player, Settings } from "../types/voteTypes";
+
+interface BracketData {
+  groups: Group[];
+}
+
+interface Group {
+  name: string;
+  players: string[];
+}
 
 interface Values {
   charts: string;
@@ -53,6 +62,41 @@ const getInitialValues = (): Values => {
 };
 
 const Controller = React.memo<Props>(({ client, state }) => {
+  function handleOnChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    // TODO: fetch bracket data from google sheets
+    setBracketState(event.currentTarget.value);
+  }
+
+  function handleOnGroupChange(
+    event: React.ChangeEvent<HTMLSelectElement>,
+    setFieldValue: (field: string, value: any) => void
+  ) {
+    setSelectedGroupState(event.currentTarget.value);
+    const selectedGroup = groupState.find(x => x.name === selectedGroupState);
+
+    if (!selectedGroup) {
+      console.log(
+        `Error: group ${selectedGroupState} not found in groupState!`
+      );
+      return;
+    }
+
+    setFieldValue("players", selectedGroup.players.join("\n"));
+  }
+
+  const [bracketState, setBracketState] = React.useState("lower");
+  const [selectedGroupState, setSelectedGroupState] = React.useState("");
+  const [groupState, setGroupState] = React.useState<Group[]>([]);
+
+  // Fetch default bracket data when component is mounted
+  React.useEffect(() => {
+    client
+      .get(`/groups/${bracketState}`)
+      .then(res => res.data.groups as Group[])
+      .then(groups => setGroupState(groups))
+      .catch(err => console.log(err));
+  }, []);
+
   const submitStart = React.useCallback(
     async (data: Values) => {
       localStorage.setItem("formInitialValues", JSON.stringify(data));
@@ -109,8 +153,47 @@ const Controller = React.memo<Props>(({ client, state }) => {
         initialValues={getInitialValues()}
         onSubmit={submitStart}
       >
-        {({ handleSubmit, isSubmitting, isValid, errors }) => (
+        {({ handleSubmit, isSubmitting, isValid, errors, setFieldValue }) => (
           <form onSubmit={handleSubmit}>
+            <label>
+              <p>Bracket:</p>
+              <select
+                name="bracket"
+                value={bracketState}
+                onChange={handleOnChange}
+                style={{ marginBottom: "10px" }}
+              >
+                <option value="lower" label="Lower">
+                  Lower
+                </option>
+                <option value="upper" label="Upper">
+                  Upper
+                </option>
+              </select>
+            </label>
+            {groupState.length > 0 && (
+              <label>
+                <p>Group:</p>
+                <select
+                  name="group"
+                  value={selectedGroupState}
+                  onChange={ev => handleOnGroupChange(ev, setFieldValue)}
+                  style={{ marginBottom: "10px" }}
+                >
+                  {groupState.map(group => {
+                    return (
+                      <option
+                        key={group.name}
+                        value={group.name}
+                        label={group.name}
+                      >
+                        {group.name}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+            )}
             <label>
               <p>Players:</p>
               <Field
