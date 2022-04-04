@@ -75,11 +75,16 @@ app.post("/newVote", (req, res) => {
   res.sendStatus(201);
 });
 
-app.post("/makePicks", (_, res) => {
+app.post("/makePicks", async (_, res) => {
   chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "makePicks",
   });
   broadcastState();
+
+  // Send picks to google sheets
+  // @ts-ignore
+  const { settings, selectedCharts } = chartPickerState;
+  await sheetsDataFetcher.sendSongPicksToSheets(settings, selectedCharts);
   res.sendStatus(201);
 });
 

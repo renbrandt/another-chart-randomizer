@@ -1,11 +1,14 @@
 import { google } from "googleapis";
 import { BracketData, BracketDataParser } from "./BracketDataParser.js";
+import { Chart, Settings } from "./chartPicker";
 
 // CHANGE THESE TO MATCH THE WANTED GOOGLE SHEET
 // ---------------------------------------------
 const spreadsheetId = "1YXOvYsa4RPephIZDCKtja91IzZqrGdYiNST15xfPw2c";
 export const upperBracketTab = "UpperBracket";
 export const lowerBracketTab = "LowerBracket";
+const songPicksTab = "SongPicks";
+const groupPlayerSongsTab = "GroupPlayerSongs";
 const dataFetchingRange = "A1:U100";
 // ---------------------------------------------
 
@@ -17,7 +20,6 @@ const auth = new google.auth.GoogleAuth({
 
 // @ts-ignore
 const authClient = await auth.getClient();
-console.log(authClient);
 
 const googleSheets = google.sheets({ version: "v4", auth: authClient });
 console.log("Done.");
@@ -44,5 +46,67 @@ export async function fetchDataFromGoogleApi(
     return bracketParser.parseBracketData(rows);
   } catch (e) {
     console.log(`Error while fetching tab ${tabName} data`, e);
+  }
+}
+
+export async function sendSongPicksToSheets(
+  settings: Settings,
+  selectedCharts: Chart[]
+): Promise<void> {
+  const bracket = settings.bracket;
+  const group = settings.group;
+  console.log(
+    "sending to sheets: ",
+    bracket,
+    group,
+    settings.players.map((p) => p.name),
+    selectedCharts.map((c) => c.title)
+  );
+
+  const songPickValues: string[][] = [];
+  const groupPlayerSongsValues: any[][] = [];
+
+  songPickValues.push([bracket, group]);
+
+  selectedCharts.forEach((c) => {
+    songPickValues[0].push(c.title);
+
+    settings.players.forEach((p) => {
+      groupPlayerSongsValues.push([bracket, group, p.name, c.title]);
+    });
+  });
+
+  // Send song picks to google sheets
+  try {
+    // @ts-ignore
+    await googleSheets.spreadsheets.values.append({
+      auth,
+      spreadsheetId,
+      range: `${songPicksTab}!A:G`,
+      valueInputOption: "USER_ENTERED",
+      resource: {
+        values: songPickValues,
+      },
+    });
+  } catch (e) {
+    console.log(`Error: Could not send song picks to ${songPicksTab} tab!`, e);
+  }
+
+  try {
+    // @ts-ignore
+    await googleSheets.spreadsheets.values.append({
+      auth,
+      spreadsheetId,
+      range: `${groupPlayerSongsTab}!A:D`,
+      valueInputOption: "USER_ENTERED",
+      resource: {
+        values: groupPlayerSongsValues,
+      },
+    });
+  } catch (e) {
+    console.log(
+      `Error: Could not send song picks to ${groupPlayerSongsTab} tab!`,
+      e
+    );
   }
 }

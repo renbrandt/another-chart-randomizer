@@ -9,7 +9,6 @@ export interface Chart {
   chartId: string;
   difficultyRating: number;
   title: string;
-  subtitle: string | null;
 }
 
 export interface Player {
@@ -18,6 +17,8 @@ export interface Player {
 }
 
 export interface Settings {
+  bracket: string;
+  group: string;
   charts: Chart[];
   players: Player[]; // order matters here – first player can pick first!
   howManyChartsToVoteFrom: number;
