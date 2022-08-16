@@ -7,9 +7,8 @@ interface Group {
   players: string[];
 }
 
-const finalGroupTitleName = "FINAL GROUP";
 const groupRowSearchLength = 6;
-const groupRegexp = /^GROUP [0-9]{1,3} - [WL]$/;
+const groupRegexp = /^GROUP [0-9]{1,3} -/;
 
 export class BracketDataParser {
   private static parseGroupData(
@@ -23,6 +22,9 @@ export class BracketDataParser {
       players: [],
     };
 
+    console.log(rows);
+    console.log(currentValue);
+
     // Get data for all players in the group
     for (
       let playerIndex = 0;
@@ -30,11 +32,17 @@ export class BracketDataParser {
       playerIndex++
     ) {
       const playerNameRowIndex = rowIndex + 2 + playerIndex;
-      const playerName = rows[playerNameRowIndex][columnIndex];
+      const playerNameRow = rows[playerNameRowIndex];
+      const playerName =
+        Array.isArray(playerNameRow) && playerNameRow.length > 0
+          ? rows[playerNameRowIndex][columnIndex]
+          : undefined;
 
       // Player entry exists
       if (typeof playerName === "string" && playerName.length > 0) {
         groupData.players.push(playerName);
+      } else if (!playerName) {
+        break;
       }
     }
 
@@ -57,19 +65,6 @@ export class BracketDataParser {
         if (
           typeof currentValue === "string" &&
           groupRegexp.test(currentValue.toUpperCase())
-        ) {
-          const groupData = BracketDataParser.parseGroupData(
-            currentValue,
-            rowIndex,
-            columnIndex,
-            rows
-          );
-          results.groups.push(groupData);
-        }
-        // Check for "FINAL GROUP" title
-        else if (
-          typeof currentValue === "string" &&
-          currentValue === finalGroupTitleName
         ) {
           const groupData = BracketDataParser.parseGroupData(
             currentValue,

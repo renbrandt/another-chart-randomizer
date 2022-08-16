@@ -31,24 +31,12 @@ app.post("/reset", (_, res) => {
   res.sendStatus(201);
 });
 
-app.get("/groups/:bracket", async (req, res) => {
-  const bracket = req.params.bracket;
+app.get("/groups", async (_req, res) => {
   let bracketData: BracketData | undefined;
 
-  switch (bracket) {
-    case "upper":
-      bracketData = await sheetsDataFetcher.fetchDataFromGoogleApi(
-        sheetsDataFetcher.upperBracketTab
-      );
-      break;
-    case "lower":
-      bracketData = await sheetsDataFetcher.fetchDataFromGoogleApi(
-        sheetsDataFetcher.lowerBracketTab
-      );
-      break;
-    default:
-      return res.sendStatus(400);
-  }
+  bracketData = await sheetsDataFetcher.fetchDataFromGoogleApi(
+    sheetsDataFetcher.bracketTab
+  );
 
   if (!bracketData) {
     return res.sendStatus(500);

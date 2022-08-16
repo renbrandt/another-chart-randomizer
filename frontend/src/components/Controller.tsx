@@ -71,7 +71,7 @@ const Controller = React.memo<Props>(({ client, state }) => {
     const bracketName = event.currentTarget.value;
     setFieldValue("bracket", bracketName);
     setFieldValue("group", "");
-    fetchBracketGroupData(bracketName);
+    fetchBracketGroupData();
   }
 
   function handleOnGroupChange(
@@ -97,9 +97,9 @@ const Controller = React.memo<Props>(({ client, state }) => {
     setFieldValue("players", selectedGroup.players.join("\n"));
   }
 
-  function fetchBracketGroupData(bracketName: string): void {
+  function fetchBracketGroupData(): void {
     client
-      .get(`/groups/${bracketName}`)
+      .get(`/groups`)
       .then(res => res.data.groups as Group[])
       .then(groups => setGroupState(groups))
       .catch(err => console.log(err));
@@ -109,7 +109,7 @@ const Controller = React.memo<Props>(({ client, state }) => {
 
   // Fetch default bracket data when component is mounted
   React.useEffect(() => {
-    fetchBracketGroupData("lower");
+    fetchBracketGroupData();
   }, []);
 
   const submitStart = React.useCallback(
