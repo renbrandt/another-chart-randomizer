@@ -28,7 +28,6 @@ const comeFromBottom = {
 
 const SongRating = styled.span`
   display: inline-block;
-  padding: 1px;
   background-color: black;
   color: white;
   min-width: 1.5rem;
@@ -36,6 +35,19 @@ const SongRating = styled.span`
   text-align: center;
   font-weight: bold;
   border-radius: 1px;
+  margin-right: 0.25rem;
+`;
+
+const PercentToPick = styled.span`
+  display: inline-block;
+  background-color: black;
+  color: #00ff00;
+  min-width: 1.5rem;
+  padding: 0.2rem 0.5rem;
+  text-align: center;
+  font-weight: normal;
+  border-radius: 1px;
+  float: right;
   margin-right: 0.25rem;
 `;
 
@@ -137,10 +149,11 @@ const ChartWithVotes = posed(
     {
       chart: Chart;
       votes: CastVote[];
+      probability: string;
       settings: Settings;
       onClick?: () => void;
     }
-  >(({ chart, votes, settings, onClick }, ref) => {
+  >(({ chart, votes, probability, settings, onClick }, ref) => {
     const downvotes = votes.filter(vote => vote.type === "downvote");
     const upvotes = votes.filter(vote => vote.type === "upvote");
 
@@ -148,6 +161,7 @@ const ChartWithVotes = posed(
       <StyledSong onClick={onClick} ref={ref}>
         <SongTitle>
           <SongRating>{chart.difficultyRating}</SongRating> {chart.title}
+          {probability !== "" && <PercentToPick>{probability}%</PercentToPick>}
         </SongTitle>
 
         {(!!upvotes.length || !!downvotes.length) && (
@@ -187,6 +201,26 @@ const ChartPicker = React.memo<{
     if (state.phase === "pick") {
       const { nextVote, settings, chartPool, votes } = state;
 
+      const ticketsPerChart = chartPool.map(chart => {
+        const upvotes = votes.filter(
+          vote => vote.chartId === chart.chartId && vote.type === "upvote"
+        ).length;
+
+        const downvotes = votes.filter(
+          vote => vote.chartId === chart.chartId && vote.type === "downvote"
+        ).length;
+
+        return {
+          chartId: chart.chartId,
+          tickets: Math.ceil(100 * Math.pow(2, upvotes - downvotes))
+        };
+      });
+
+      const totalTickets = ticketsPerChart.reduce(
+        (total, curr) => (total += curr.tickets),
+        0
+      );
+
       return (
         <Section key="selection">
           <Header>Song selection</Header>
@@ -214,6 +248,12 @@ const ChartPicker = React.memo<{
               settings={settings}
               key={chart.chartId}
               chart={chart}
+              probability={(
+                (ticketsPerChart.find(x => x.chartId === chart.chartId)!
+                  .tickets /
+                  totalTickets) *
+                100
+              ).toFixed(1)}
               votes={votes.filter(vote => vote.chartId === chart.chartId)}
               onClick={onChartClick && (() => onChartClick(chart))}
             />
@@ -232,6 +272,7 @@ const ChartPicker = React.memo<{
               settings={state.settings}
               key={chart.chartId}
               chart={chart}
+              probability={""}
               votes={[]}
             />
           ))}
