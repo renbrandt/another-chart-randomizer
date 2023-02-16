@@ -171,12 +171,38 @@ const randomizeCharts = (
     return {
       chart,
       weight: Math.ceil(initialPoints * Math.pow(FACTOR, upvotes - downvotes)),
+      upvotes,
+      downvotes,
     };
   });
 
   const randomizedCharts: Chart[] = [];
+  const pickedAndBannedChartIds: string[] = [];
+  let remainingCharts = howManyChartsToRandomize;
+  const totalUpvotes = votes.filter((vote) => vote.type === "upvote").length;
 
-  times(Math.min(howManyChartsToRandomize, charts.length), () => {
+  // Check for guaranteed picks and bans
+  chartsWithWeights.forEach((chartWithWeight) => {
+    // All players upvoted the chart -> PICK
+    if (chartWithWeight.upvotes === totalUpvotes) {
+      randomizedCharts.push(chartWithWeight.chart);
+      pickedAndBannedChartIds.push(chartWithWeight.chart.chartId);
+      remainingCharts--;
+    }
+    // At least one player downvoted -> BAN
+    else if (chartWithWeight.downvotes >= 1) {
+      pickedAndBannedChartIds.push(chartWithWeight.chart.chartId);
+    }
+  });
+
+  // Remove picked & banned charts from the remaining pool
+  chartsWithWeights = chartsWithWeights.filter(
+    (chartWithWeight) =>
+      !pickedAndBannedChartIds.includes(chartWithWeight.chart.chartId)
+  );
+
+  // Do the remaining randomized picks
+  times(Math.max(Math.min(remainingCharts, charts.length), 0), () => {
     const pool = flatMap(chartsWithWeights, (chartWithWeight) =>
       times(chartWithWeight.weight, () => chartWithWeight.chart)
     );
@@ -185,6 +211,7 @@ const randomizeCharts = (
 
     randomizedCharts.push(nextChart);
 
+    // Remove picked chart from the pool, so it can't be picked again
     chartsWithWeights = chartsWithWeights.filter(
       (chartWithWeight) => chartWithWeight.chart.chartId !== nextChart.chartId
     );

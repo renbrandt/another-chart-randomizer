@@ -8,6 +8,10 @@ import { CastVote, Chart, ExtendedState, Settings } from "../types/voteTypes";
 const DOWNVOTE_COLOR = "#F1396D";
 const UPVOTE_COLOR = "#8F9924";
 
+const BAN_COLOR = "#ff002f";
+const PICK_COLOR = "#00ff00";
+const VOTE_COLOR = "#388fd5";
+
 const comeFromBottom = {
   preEnter: {
     opacity: 0,
@@ -38,10 +42,10 @@ const SongRating = styled.span`
   margin-right: 0.25rem;
 `;
 
-const PercentToPick = styled.span`
+const PercentToPick = styled.span<{ color: string }>`
   display: inline-block;
   background-color: black;
-  color: #00ff00;
+  color: ${props => props.color};
   min-width: 1.5rem;
   padding: 0.2rem 0.5rem;
   text-align: center;
@@ -161,7 +165,19 @@ const ChartWithVotes = posed(
       <StyledSong onClick={onClick} ref={ref}>
         <SongTitle>
           <SongRating>{chart.difficultyRating}</SongRating> {chart.title}
-          {probability !== "" && <PercentToPick>{probability}%</PercentToPick>}
+          {probability !== "" && (
+            <PercentToPick
+              color={
+                probability === "0.0"
+                  ? BAN_COLOR
+                  : probability === "100"
+                  ? PICK_COLOR
+                  : VOTE_COLOR
+              }
+            >
+              {probability}%
+            </PercentToPick>
+          )}
         </SongTitle>
 
         {(!!upvotes.length || !!downvotes.length) && (
@@ -201,6 +217,8 @@ const ChartPicker = React.memo<{
     if (state.phase === "pick") {
       const { nextVote, settings, chartPool, votes } = state;
 
+      const playerCount = settings.players.length;
+
       const ticketsPerChart = chartPool.map(chart => {
         const upvotes = votes.filter(
           vote => vote.chartId === chart.chartId && vote.type === "upvote"
@@ -210,9 +228,16 @@ const ChartPicker = React.memo<{
           vote => vote.chartId === chart.chartId && vote.type === "downvote"
         ).length;
 
+        const isGuaranteedPick = upvotes === playerCount;
+        const tickets =
+          downvotes >= 1 || isGuaranteedPick
+            ? 0
+            : Math.ceil(100 * Math.pow(2, upvotes - downvotes));
+
         return {
           chartId: chart.chartId,
-          tickets: Math.ceil(100 * Math.pow(2, upvotes - downvotes))
+          tickets,
+          isGuaranteedPick
         };
       });
 
@@ -248,12 +273,17 @@ const ChartPicker = React.memo<{
               settings={settings}
               key={chart.chartId}
               chart={chart}
-              probability={(
-                (ticketsPerChart.find(x => x.chartId === chart.chartId)!
-                  .tickets /
-                  totalTickets) *
-                100
-              ).toFixed(1)}
+              probability={
+                ticketsPerChart.find(x => x.chartId === chart.chartId)!
+                  .isGuaranteedPick
+                  ? "100"
+                  : (
+                      (ticketsPerChart.find(x => x.chartId === chart.chartId)!
+                        .tickets /
+                        totalTickets) *
+                      100
+                    ).toFixed(1)
+              }
               votes={votes.filter(vote => vote.chartId === chart.chartId)}
               onClick={onChartClick && (() => onChartClick(chart))}
             />
