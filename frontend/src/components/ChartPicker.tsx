@@ -229,8 +229,10 @@ const ChartPicker = React.memo<{
         ).length;
 
         const isGuaranteedPick = upvotes === playerCount;
+        const isGuaranteedBan = downvotes === playerCount;
+
         const tickets =
-          downvotes >= 1 || isGuaranteedPick
+          isGuaranteedBan || isGuaranteedPick
             ? 0
             : Math.ceil(100 * Math.pow(2, upvotes - downvotes));
 

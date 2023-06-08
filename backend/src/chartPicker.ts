@@ -180,6 +180,7 @@ const randomizeCharts = (
   const pickedAndBannedChartIds: string[] = [];
   let remainingCharts = howManyChartsToRandomize;
   const totalUpvotes = votes.filter((vote) => vote.type === "upvote").length;
+  const totalDownvotes = votes.filter((vote) => vote.type === "downvote").length;
 
   // Check for guaranteed picks and bans
   chartsWithWeights.forEach((chartWithWeight) => {
@@ -189,8 +190,8 @@ const randomizeCharts = (
       pickedAndBannedChartIds.push(chartWithWeight.chart.chartId);
       remainingCharts--;
     }
-    // At least one player downvoted -> BAN
-    else if (chartWithWeight.downvotes >= 1) {
+    // All players downvoted -> BAN
+    else if (chartWithWeight.downvotes === totalDownvotes) {
       pickedAndBannedChartIds.push(chartWithWeight.chart.chartId);
     }
   });
