@@ -180,18 +180,30 @@ const randomizeCharts = (
   const pickedAndBannedChartIds: string[] = [];
   let remainingCharts = howManyChartsToRandomize;
   const totalUpvotes = votes.filter((vote) => vote.type === "upvote").length;
-  const totalDownvotes = votes.filter((vote) => vote.type === "downvote").length;
+  const totalDownvotes = votes.filter(
+    (vote) => vote.type === "downvote"
+  ).length;
 
   // Check for guaranteed picks and bans
   chartsWithWeights.forEach((chartWithWeight) => {
-    // All players upvoted the chart -> PICK
-    if (chartWithWeight.upvotes === totalUpvotes) {
+    // All players upvoted the chart OR there are 2 players and the other player upvoted the song and there are no downvotes -> PICK
+    if (
+      chartWithWeight.upvotes === totalUpvotes ||
+      (totalUpvotes === 2 &&
+        chartWithWeight.upvotes === 1 &&
+        chartWithWeight.downvotes === 0)
+    ) {
       randomizedCharts.push(chartWithWeight.chart);
       pickedAndBannedChartIds.push(chartWithWeight.chart.chartId);
       remainingCharts--;
     }
-    // All players downvoted -> BAN
-    else if (chartWithWeight.downvotes === totalDownvotes) {
+    // All players downvoted OR there are 2 players and the other player downvoted the song and there are no upvotes -> BAN
+    else if (
+      chartWithWeight.downvotes === totalDownvotes ||
+      (totalDownvotes === 2 &&
+        chartWithWeight.downvotes === 1 &&
+        chartWithWeight.upvotes === 0)
+    ) {
       pickedAndBannedChartIds.push(chartWithWeight.chart.chartId);
     }
   });

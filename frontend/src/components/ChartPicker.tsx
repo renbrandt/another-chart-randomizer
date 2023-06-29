@@ -228,8 +228,12 @@ const ChartPicker = React.memo<{
           vote => vote.chartId === chart.chartId && vote.type === "downvote"
         ).length;
 
-        const isGuaranteedPick = upvotes === playerCount;
-        const isGuaranteedBan = downvotes === playerCount;
+        const isGuaranteedPick =
+          upvotes === playerCount ||
+          (playerCount === 2 && upvotes === 1 && downvotes === 0);
+        const isGuaranteedBan =
+          downvotes === playerCount ||
+          (playerCount === 2 && downvotes === 1 && upvotes === 0);
 
         const tickets =
           isGuaranteedBan || isGuaranteedPick
