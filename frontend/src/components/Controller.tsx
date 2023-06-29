@@ -13,6 +13,7 @@ interface Values {
   howManyChartsToVoteFrom: string;
   howManyChartsToRandomize: string;
   requiredDifficulties?: number[];
+  shouldUseGuaranteedDifficulties: boolean;
 }
 
 const validationSchema = yup.object().shape({
@@ -40,14 +41,19 @@ const getInitialValues = (): Values => {
         "6",
       howManyChartsToRandomize:
         (parsedStoredValues && parsedStoredValues.howManyChartsToRandomize) ||
-        "4"
+        "4",
+      shouldUseGuaranteedDifficulties:
+        (parsedStoredValues &&
+          parsedStoredValues.shouldUseGuaranteedDifficulties) ||
+        true
     };
   } catch {
     return {
       charts: "",
       players: "",
       howManyChartsToVoteFrom: "6",
-      howManyChartsToRandomize: "4"
+      howManyChartsToRandomize: "4",
+      shouldUseGuaranteedDifficulties: true
     };
   }
 };
@@ -74,13 +80,19 @@ const Controller = React.memo<Props>(({ client, state }) => {
           subtitle: ""
         }));
 
+      console.log("DATA", data);
+
       const settings: Settings = {
         players,
         charts,
         howManyChartsToRandomize: parseInt(data.howManyChartsToRandomize, 10),
         howManyChartsToVoteFrom: parseInt(data.howManyChartsToVoteFrom, 10),
-        requiredDifficulties: uniq(charts.map(x => x.difficultyRating))
+        requiredDifficulties: data.shouldUseGuaranteedDifficulties
+          ? uniq(charts.map(x => x.difficultyRating))
+          : []
       };
+
+      console.log("SETTINGS", settings);
 
       await client.post("/start", settings);
     },
@@ -153,6 +165,15 @@ const Controller = React.memo<Props>(({ client, state }) => {
                 component="input"
                 type="number"
                 name="howManyChartsToRandomize"
+              />
+            </label>
+
+            <label>
+              <p>Guarantee at least 1 song per difficulty in song pool</p>
+              <Field
+                component="input"
+                type="checkbox"
+                name="shouldUseGuaranteedDifficulties"
               />
             </label>
 
