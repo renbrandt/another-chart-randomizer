@@ -17,6 +17,8 @@ export interface Player {
 }
 
 export interface Settings {
+  bracket: string;
+  group: string;
   charts: Chart[];
   players: Player[]; // order matters here – first player can pick first!
   howManyChartsToVoteFrom: number;
