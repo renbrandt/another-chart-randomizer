@@ -1,9 +1,7 @@
 import cors from "cors";
 import express from "express";
 import expressWs, { Application } from "express-ws";
-import { BracketData } from "./BracketDataParser.js";
 import * as chartPicker from "./chartPicker.js";
-import * as sheetsDataFetcher from "./sheetsDataFetcher.js";
 
 const app = express() as unknown as Application;
 const wsInstance = expressWs(app);
@@ -31,20 +29,6 @@ app.post("/reset", (_, res) => {
   res.sendStatus(201);
 });
 
-app.get("/groups", async (_req, res) => {
-  let bracketData: BracketData | undefined;
-
-  bracketData = await sheetsDataFetcher.fetchDataFromGoogleApi(
-    sheetsDataFetcher.bracketTab
-  );
-
-  if (!bracketData) {
-    return res.sendStatus(500);
-  }
-
-  res.json(bracketData);
-});
-
 app.post("/start", (req, res) => {
   chartPickerState = chartPicker.chartPickerReducer(chartPickerState, {
     type: "start",
@@ -69,10 +53,6 @@ app.post("/makePicks", async (_, res) => {
   });
   broadcastState();
 
-  // Send picks to google sheets
-  // @ts-ignore
-  const { settings, selectedCharts } = chartPickerState;
-  await sheetsDataFetcher.sendSongPicksToSheets(settings, selectedCharts);
   res.sendStatus(201);
 });
 
