@@ -4,9 +4,9 @@ import { Chart, Settings } from "./chartPicker";
 
 // CHANGE THESE TO MATCH THE WANTED GOOGLE SHEET
 // ---------------------------------------------
-const spreadsheetId = "1jFxf16bapf_7-2gNoncoc5LyXNh7ze1b-0jYajm6-wA";
-export const bracketTab = "UpperBracket";
-// export const bracketTab = "LowerBracket";
+const spreadsheetId = "1fa88lJihFOGGjR3yZiPHo70LOPRWlRLrFFn_I1yFJg4";
+export const bracketTab = "Bracket";
+// export const bracketTab = "Bracket - Karsintakisa";
 const songPicksTab = "SongPicks";
 const groupPlayerSongsTab = "GroupPlayerSongs";
 const dataFetchingRange = "A1:U100";
