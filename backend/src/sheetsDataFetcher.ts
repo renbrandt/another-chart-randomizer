@@ -5,8 +5,8 @@ import { Chart, Settings } from "./chartPicker";
 // CHANGE THESE TO MATCH THE WANTED GOOGLE SHEET
 // ---------------------------------------------
 const spreadsheetId = "1fa88lJihFOGGjR3yZiPHo70LOPRWlRLrFFn_I1yFJg4";
-export const bracketTab = "Bracket";
-// export const bracketTab = "Bracket - Karsintakisa";
+// export const bracketTab = "Bracket";
+export const bracketTab = "Karsintakisa";
 const songPicksTab = "SongPicks";
 const groupPlayerSongsTab = "GroupPlayerSongs";
 const dataFetchingRange = "A1:U100";

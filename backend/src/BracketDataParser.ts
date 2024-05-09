@@ -8,7 +8,7 @@ interface Group {
 }
 
 const groupRowSearchLength = 6;
-const groupRegexp = /^GROUP [0-9]{1,3} -/;
+const groupRegexp = /^GROUP [0-9]{1,3}/;
 
 export class BracketDataParser {
   private static parseGroupData(
@@ -65,7 +65,6 @@ export class BracketDataParser {
         if (
           (typeof currentValue === "string" &&
             groupRegexp.test(currentValue.toUpperCase())) ||
-          currentValue.toUpperCase() === "FINAL GROUP" ||
           currentValue.toUpperCase() === "BRONZE MATCH" ||
           currentValue.toUpperCase() === "FINAL MATCH"
           // tslint:disable-next-line:prettier
